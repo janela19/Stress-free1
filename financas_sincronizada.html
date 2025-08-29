@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossa planilha financeira ❤</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            height: 1rem;
+        }
+        .progress-bar {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 9999px;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #333;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    
+    <div id="loading" class="loading-overlay">
+        Carregando...
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-10 border border-gray-200 hidden" id="main-content">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-blue-800 mb-2">Nossa planilha financeira ❤</h1>
+        <p class="text-center text-gray-500 mb-8 sm:mb-12">Organizar nossa vida financeira para vivermos mais alegres e despreocupados.</p>
+
+        <!-- Seção de Orçamento -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-purple-600 mb-4">🎯 Orçamento Mensal</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <input type="text" id="categoriaNome" placeholder="Categoria (ex: Alimentação)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                <input type="number" id="categoriaValor" placeholder="Orçamento (R$)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                <button onclick="adicionarOrcamento()" class="bg-purple-500 text-white font-medium p-3 rounded-lg hover:bg-purple-600 transition-colors shadow-md">Definir Orçamento</button>
+            </div>
+            <div id="listaOrcamentos" class="bg-gray-50 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p class="text-gray-400 italic md:col-span-2">Nenhum orçamento definido ainda.</p>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-dashed border-gray-300 my-8 sm:my-10">
+
+        <!-- Seção de Receitas -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-green-600 mb-4">💰 Receitas</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <input type="text" id="receitaNome" placeholder="Nome da Receita (ex: Salário)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+                <input type="number" id="receitaValor" placeholder="Valor (R$)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+                <button onclick="adicionarReceita()" class="bg-green-500 text-white font-medium p-3 rounded-lg hover:bg-green-600 transition-colors shadow-md">Adicionar</button>
+            </div>
+            <div id="listaReceitas" class="bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-400 italic">Nenhuma receita adicionada ainda.</p>
+            </div>
+            <div class="mt-4 text-lg font-semibold text-gray-700 flex justify-between items-center">
+                <span>Total de Receitas:</span>
+                <span id="totalReceitas" class="font-bold text-green-600">R$ 0,00</span>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-dashed border-gray-300 my-8 sm:my-10">
+
+        <!-- Seção de Despesas Fixas -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-red-600 mb-4">🏠 Despesas Fixas</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <input type="text" id="despesaFixaNome" placeholder="Nome da Despesa (ex: Aluguel)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                <input type="number" id="despesaFixaValor" placeholder="Valor (R$)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                <button onclick="adicionarDespesa('fixa')" class="bg-red-500 text-white font-medium p-3 rounded-lg hover:bg-red-600 transition-colors shadow-md">Adicionar</button>
+            </div>
+            <div id="listaDespesasFixas" class="bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-400 italic">Nenhuma despesa fixa adicionada ainda.</p>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-dashed border-gray-300 my-8 sm:my-10">
+
+        <!-- Seção de Despesas Variáveis -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold text-red-600 mb-4">🛒 Despesas Variáveis</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <input type="text" id="despesaVariavelNome" placeholder="Nome da Despesa (ex: Lanches)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                <select id="despesaCategoria" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                    <option value="">Selecione uma categoria (opcional)</option>
+                </select>
+                <input type="number" id="despesaVariavelValor" placeholder="Valor (R$)" class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                <button onclick="adicionarDespesa('variavel')" class="bg-red-500 text-white font-medium p-3 rounded-lg hover:bg-red-600 transition-colors shadow-md">Adicionar</button>
+            </div>
+            <div id="listaDespesasVariaveis" class="bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-400 italic">Nenhuma despesa variável adicionada ainda.</p>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-dashed border-gray-300 my-8 sm:my-10">
+
+        <!-- Resumo -->
+        <div>
+            <h2 class="text-2xl font-semibold text-blue-800 mb-4 text-center">📊 Resumo do Mês</h2>
+            <div class="bg-blue-100 p-6 rounded-lg shadow-inner border border-blue-200">
+                <div class="text-xl sm:text-2xl text-center font-bold">
+                    <span>Total de Despesas:</span>
+                    <span id="totalDespesas" class="ml-2 font-bold text-red-600">R$ 0,00</span>
+                </div>
+                <div class="text-xl sm:text-2xl text-center font-bold mt-4">
+                    <span>Saldo Final:</span>
+                    <span id="saldoFinal" class="ml-2">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagem de feedback - oculta por padrão -->
+    <div id="feedback-message" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-center p-4 px-6 rounded-full shadow-lg opacity-0 transition-opacity duration-300 ease-in-out hidden">
+        <span class="text-3xl">❤</span>
+        <p id="feedback-text" class="text-base mt-1"></p>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis globais do ambiente Canvas
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Elementos do DOM
+        const loadingDiv = document.getElementById('loading');
+        const mainContentDiv = document.getElementById('main-content');
+        const receitaNomeInput = document.getElementById('receitaNome');
+        const receitaValorInput = document.getElementById('receitaValor');
+        const listaReceitasDiv = document.getElementById('listaReceitas');
+        const totalReceitasSpan = document.getElementById('totalReceitas');
+
+        const despesaFixaNomeInput = document.getElementById('despesaFixaNome');
+        const despesaFixaValorInput = document.getElementById('despesaFixaValor');
+        const listaDespesasFixasDiv = document.getElementById('listaDespesasFixas');
+        
+        const despesaVariavelNomeInput = document.getElementById('despesaVariavelNome');
+        const despesaCategoriaSelect = document.getElementById('despesaCategoria');
+        const despesaVariavelValorInput = document.getElementById('despesaVariavelValor');
+        const listaDespesasVariaveisDiv = document.getElementById('listaDespesasVariaveis');
+        
+        const totalDespesasSpan = document.getElementById('totalDespesas');
+        const categoriaNomeInput = document.getElementById('categoriaNome');
+        const categoriaValorInput = document.getElementById('categoriaValor');
+        const listaOrcamentosDiv = document.getElementById('listaOrcamentos');
+        const saldoFinalSpan = document.getElementById('saldoFinal');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const feedbackText = document.getElementById('feedback-text');
+
+        const feedbackMessages = [
+            "Obrigado por fazer isso!",
+            "Ei... já falei o quão você é incrível hoje?",
+            "Nossa, como você é linda(o) quando faz isso",
+            "Quer? Quer? Quer?",
+            "E de quem é a comida do pitoco?",
+            "Quando olhei para seus olhos foi como se perdesse no oceano da sua alma",
+            "Você é o meu amor, e juntos somos uma equipe imbatível.",
+            "Meu maior tesouro não está aqui, mas sim em você.",
+            "Cada despesa registrada é um passo nosso rumo aos nossos sonhos.",
+            "Não há desafio financeiro que a gente não possa vencer.",
+            "Sua dedicação me inspira. Eu te amo!",
+            "Fico tão feliz por estarmos nessa jornada juntos.",
+            "Nossa parceria vale mais do que qualquer dinheiro.",
+            "Você é a pessoa mais dedicada que eu conheço.",
+            "Estou aqui com você em cada real, em cada sonho.",
+            "A felicidade é o nosso maior lucro."
+        ];
+
+        // Referências Firestore
+        let db;
+        let auth;
+        let userId = null;
+
+        // Arrays locais para renderização
+        let receitas = [];
+        let despesas = [];
+        let orcamentos = {};
+        let isAuthReady = false;
+
+        // Inicialização e autenticação do Firebase
+        const initFirebase = async () => {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        loadingDiv.classList.add('hidden');
+                        mainContentDiv.classList.remove('hidden');
+                        carregarDados();
+                    }
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase ou autenticar:", error);
+                loadingDiv.textContent = 'Erro ao carregar. Tente novamente.';
+            }
+        };
+
+        // Função para formatar o valor para moeda BRL
+        const formatarMoeda = (valor) => {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        };
+
+        // Função para calcular os totais e o saldo final
+        const calcularTotais = () => {
+            const totalReceitas = receitas.reduce((acc, item) => acc + item.valor, 0);
+            const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
+            const saldoFinal = totalReceitas - totalDespesas;
+
+            totalReceitasSpan.textContent = formatarMoeda(totalReceitas);
+            totalDespesasSpan.textContent = formatarMoeda(totalDespesas);
+            saldoFinalSpan.textContent = formatarMoeda(saldoFinal);
+
+            if (saldoFinal >= 0) {
+                saldoFinalSpan.classList.remove('text-red-600');
+                saldoFinalSpan.classList.add('text-green-600');
+            } else {
+                saldoFinalSpan.classList.remove('text-green-600');
+                saldoFinalSpan.classList.add('text-red-600');
+            }
+
+            atualizarProgressoOrcamentos();
+        };
+
+        // Função para atualizar as barras de progresso do orçamento
+        const atualizarProgressoOrcamentos = () => {
+            for (const categoria in orcamentos) {
+                const despesasDaCategoria = despesas.filter(item => item.categoria === categoria && item.tipo === 'variavel');
+                const totalGasto = despesasDaCategoria.reduce((acc, item) => acc + item.valor, 0);
+                const orcamentoTotal = orcamentos[categoria].valor;
+                const percentual = Math.min((totalGasto / orcamentoTotal) * 100, 100);
+
+                const progressBar = document.querySelector(`#progresso-${categoria.replace(/\s+/g, '-')}`);
+                if (progressBar) {
+                    progressBar.style.width = `${percentual}%`;
+                    if (percentual >= 100) {
+                        progressBar.classList.remove('bg-purple-400', 'bg-yellow-500');
+                        progressBar.classList.add('bg-red-500');
+                    } else if (percentual > 75) {
+                         progressBar.classList.remove('bg-purple-400', 'bg-red-500');
+                         progressBar.classList.add('bg-yellow-500');
+                    } else {
+                        progressBar.classList.remove('bg-red-500', 'bg-yellow-500');
+                        progressBar.classList.add('bg-purple-400');
+                    }
+                }
+
+                const totalGastoSpan = document.querySelector(`#gasto-${categoria.replace(/\s+/g, '-')}`);
+                if (totalGastoSpan) {
+                    totalGastoSpan.textContent = `${formatarMoeda(totalGasto)} / ${formatarMoeda(orcamentoTotal)}`;
+                }
+            }
+        };
+
+        // Função para renderizar as listas
+        const renderizarListas = () => {
+            listaReceitasDiv.innerHTML = '';
+            if (receitas.length === 0) {
+                listaReceitasDiv.innerHTML = '<p class="text-gray-400 italic">Nenhuma receita adicionada ainda.</p>';
+            } else {
+                receitas.forEach((item) => {
+                    const li = document.createElement('div');
+                    li.className = 'flex justify-between items-center py-2 border-b last:border-b-0';
+                    li.innerHTML = `
+                        <span class="text-sm font-medium text-gray-600">${item.nome}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-green-600">${formatarMoeda(item.valor)}</span>
+                            <button onclick="removerItem('receita', '${item.id}')" class="bg-red-100 text-red-600 p-1 rounded-full hover:bg-red-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    listaReceitasDiv.appendChild(li);
+                });
+            }
+
+            listaDespesasFixasDiv.innerHTML = '';
+            const despesasFixas = despesas.filter(d => d.tipo === 'fixa');
+            if (despesasFixas.length === 0) {
+                listaDespesasFixasDiv.innerHTML = '<p class="text-gray-400 italic">Nenhuma despesa fixa adicionada ainda.</p>';
+            } else {
+                despesasFixas.forEach((item) => {
+                    const li = document.createElement('div');
+                    li.className = 'flex justify-between items-center py-2 border-b last:border-b-0';
+                    li.innerHTML = `
+                        <span class="text-sm font-medium text-gray-600">${item.nome}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-red-600">${formatarMoeda(item.valor)}</span>
+                            <button onclick="removerItem('despesa', '${item.id}')" class="bg-red-100 text-red-600 p-1 rounded-full hover:bg-red-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    listaDespesasFixasDiv.appendChild(li);
+                });
+            }
+
+            listaDespesasVariaveisDiv.innerHTML = '';
+            const despesasVariaveis = despesas.filter(d => d.tipo === 'variavel');
+            if (despesasVariaveis.length === 0) {
+                listaDespesasVariaveisDiv.innerHTML = '<p class="text-gray-400 italic">Nenhuma despesa variável adicionada ainda.</p>';
+            } else {
+                despesasVariaveis.forEach((item) => {
+                    const li = document.createElement('div');
+                    li.className = 'flex justify-between items-center py-2 border-b last:border-b-0';
+                    const categoriaSpan = item.categoria ? `<span class="text-xs text-gray-400">(${item.categoria})</span>` : '';
+                    li.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-600">${item.nome}</span>
+                            ${categoriaSpan}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-red-600">${formatarMoeda(item.valor)}</span>
+                            <button onclick="removerItem('despesa', '${item.id}')" class="bg-red-100 text-red-600 p-1 rounded-full hover:bg-red-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    listaDespesasVariaveisDiv.appendChild(li);
+                });
+            }
+            renderizarOrcamentos();
+        };
+
+        // Funções para manipular o Firestore
+        window.adicionarReceita = async () => {
+            const nome = receitaNomeInput.value.trim();
+            const valor = parseFloat(receitaValorInput.value);
+
+            if (nome && !isNaN(valor) && valor > 0 && isAuthReady) {
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/receitas`), { nome, valor, timestamp: new Date() });
+                receitaNomeInput.value = '';
+                receitaValorInput.value = '';
+            } else {
+                console.error("Dados inválidos ou autenticação não pronta.");
+            }
+        };
+
+        window.adicionarDespesa = async (tipo) => {
+            let nome, valor, categoria = '';
+
+            if (tipo === 'fixa') {
+                nome = despesaFixaNomeInput.value.trim();
+                valor = parseFloat(despesaFixaValorInput.value);
+            } else if (tipo === 'variavel') {
+                nome = despesaVariavelNomeInput.value.trim();
+                valor = parseFloat(despesaVariavelValorInput.value);
+                categoria = despesaCategoriaSelect.value || '';
+            }
+
+            if (nome && !isNaN(valor) && valor > 0 && isAuthReady) {
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/despesas`), { nome, valor, categoria, tipo, timestamp: new Date() });
+                
+                if (tipo === 'fixa') {
+                    despesaFixaNomeInput.value = '';
+                    despesaFixaValorInput.value = '';
+                } else if (tipo === 'variavel') {
+                    despesaVariavelNomeInput.value = '';
+                    despesaCategoriaSelect.value = '';
+                    despesaVariavelValorInput.value = '';
+
+                    const randomMessage = feedbackMessages[Math.floor(Math.random() * feedbackMessages.length)];
+                    feedbackText.textContent = randomMessage;
+
+                    // Mostra a mensagem de feedback
+                    feedbackMessage.classList.remove('hidden', 'opacity-0');
+                    feedbackMessage.classList.add('opacity-100');
+
+                    // Oculta a mensagem após 2 segundos
+                    setTimeout(() => {
+                        feedbackMessage.classList.remove('opacity-100');
+                        feedbackMessage.classList.add('opacity-0');
+                        setTimeout(() => {
+                            feedbackMessage.classList.add('hidden');
+                        }, 300);
+                    }, 2000);
+                }
+            } else {
+                console.error("Dados inválidos ou autenticação não pronta.");
+            }
+        };
+        
+        window.adicionarOrcamento = async () => {
+            const nome = categoriaNomeInput.value.trim();
+            const valor = parseFloat(categoriaValorInput.value);
+
+            if (nome && !isNaN(valor) && valor > 0 && isAuthReady) {
+                await setDoc(doc(db, `artifacts/${appId}/users/${userId}/orcamentos`, nome), { valor });
+                categoriaNomeInput.value = '';
+                categoriaValorInput.value = '';
+            } else {
+                console.error("Dados inválidos ou autenticação não pronta.");
+            }
+        };
+
+        window.removerItem = async (tipo, id) => {
+            if (!isAuthReady) {
+                console.error("Autenticação não pronta.");
+                return;
+            }
+            if (tipo === 'receita') {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/receitas`, id));
+            } else if (tipo === 'despesa') {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/despesas`, id));
+            } else if (tipo === 'orcamento') {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/orcamentos`, id));
+            }
+        };
+        
+        const renderizarOrcamentos = () => {
+            listaOrcamentosDiv.innerHTML = '';
+            const categorias = Object.keys(orcamentos);
+            if (categorias.length === 0) {
+                listaOrcamentosDiv.innerHTML = '<p class="text-gray-400 italic md:col-span-2">Nenhum orçamento definido ainda.</p>';
+            } else {
+                categorias.forEach((categoria) => {
+                    const orcamentoTotal = orcamentos[categoria].valor;
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl shadow-lg p-4 flex flex-col justify-between border border-purple-200';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-lg font-semibold text-purple-700">${categoria}</span>
+                            <button onclick="removerItem('orcamento', '${categoria}')" class="bg-red-100 text-red-600 p-1 rounded-full hover:bg-red-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="text-sm font-medium text-gray-500 mb-2">
+                            <span id="gasto-${categoria.replace(/\s+/g, '-')}" class="font-bold">R$ 0,00</span> / ${formatarMoeda(orcamentoTotal)}
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="progresso-${categoria.replace(/\s+/g, '-')}" class="progress-bar bg-purple-400" style="width: 0%;"></div>
+                        </div>
+                    `;
+                    listaOrcamentosDiv.appendChild(card);
+                });
+            }
+        };
+
+        const atualizarSelectCategorias = () => {
+            despesaCategoriaSelect.innerHTML = '<option value="">Selecione uma categoria (opcional)</option>';
+            for (const categoria in orcamentos) {
+                const option = document.createElement('option');
+                option.value = categoria;
+                option.textContent = categoria;
+                despesaCategoriaSelect.appendChild(option);
+            }
+        };
+
+        const carregarDados = () => {
+            const receitasRef = collection(db, `artifacts/${appId}/users/${userId}/receitas`);
+            const despesasRef = collection(db, `artifacts/${appId}/users/${userId}/despesas`);
+            const orcamentosRef = collection(db, `artifacts/${appId}/users/${userId}/orcamentos`);
+
+            onSnapshot(receitasRef, (snapshot) => {
+                receitas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderizarListas();
+                calcularTotais();
+            }, (error) => {
+                console.error("Erro ao carregar receitas:", error);
+            });
+
+            onSnapshot(despesasRef, (snapshot) => {
+                despesas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderizarListas();
+                calcularTotais();
+            }, (error) => {
+                console.error("Erro ao carregar despesas:", error);
+            });
+
+            onSnapshot(orcamentosRef, (snapshot) => {
+                const orcamentosTemp = {};
+                snapshot.docs.forEach(doc => {
+                    orcamentosTemp[doc.id] = doc.data();
+                });
+                orcamentos = orcamentosTemp;
+                renderizarListas();
+                calcularTotais();
+                atualizarSelectCategorias();
+            }, (error) => {
+                console.error("Erro ao carregar orçamentos:", error);
+            });
+        };
+
+        initFirebase();
+    </script>
+</body>
+</html>
